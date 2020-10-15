@@ -1,0 +1,68 @@
+import numpy.matlib 
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import itertools
+
+
+A=np.matrix([[4,2],[2,6]])        # this is given input matrix
+b=np.matrix([[2],[-8]])                  
+x0=np.matrix([[-2],[-2]])                # this is assumed random point
+steps=[(-2,-2)]                            # steps should be same as random point
+
+def sqrt_r(A):
+    a=[]
+    sm=0
+    for i in A:
+        sm=sm + (i[0])**2
+    return np.sqrt(sm)
+c = 0.0
+
+def f(x, A, b, c):                                  # this is function  value
+    return float(0.5 * x.T * A * x - b.T * x + c)
+if np.equal(A,(A.T)).all():
+    A=A                           #  if matrix is symmetric then same
+else:
+    A=np.dot((np.transpose(A)),A)     # if not then here we make symmetric
+    b=np.dot((np.transpose(A)),b)
+    
+i=0
+tol = 0.01
+x=[]
+count=0
+r0=b-np.dot(A,x0)
+d0=r0
+while i<10000:
+    a0=np.dot((np.transpose(r0)),r0)/np.dot(np.dot((np.transpose(d0)),A),d0)    # this is alpha0 value
+    x1=x0+np.dot(float(a0),d0)                                                # now we are predicting new x value
+    steps.append((x1[0,0], x1[1,0]))
+    r1=r0-np.dot(np.dot((float(a0)),A),d0)                                  # here next resdue value is calculate
+    b1=np.dot((np.transpose(r1)),r1)/np.dot((np.transpose(r0)),r0)          # here value of beta is calculating
+    d1=r1+np.dot(float(b1),d0)                                             # here d1 is calculating
+    rnew=sqrt_r(r1)
+    if rnew < tol:   # if square root of resdue will be less than tolerance then solution will converges
+        ans=x1
+        break
+    else:
+        r0=r1
+        d0=d1
+        i=i+1
+        count=count+1
+size = 20
+x1 = list(np.linspace(-16, 16, size))
+x2 = list(np.linspace(-16, 16, size))
+x1, x2 = np.meshgrid(x1, x2)
+zs = np.zeros((size, size))
+for i in range(size):
+    for j in range(size):
+        x = np.matrix([[x1[i,j]], [x2[i,j]]])
+        zs[i,j] = f(x, A, b, c)
+
+# x1, x2, zs = bowl(A, b, c)
+fig = plt.figure(figsize=(6,6))
+cp = plt.contour(x1, x2, zs, 10)
+plt.clabel(cp, inline=1, fontsize=10)
+if steps is not None:
+    steps = np.matrix(steps)
+    plt.plot(steps[:,0], steps[:,1], '-o')
+fig.show()
